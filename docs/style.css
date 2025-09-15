@@ -1,0 +1,339 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    background: #0b0e14;
+    color: #eaeef7;
+    font-size: system-ui, sans-serif;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+/* Overlay */
+
+
+#overlay {
+  position: fixed; 
+  inset: 0;
+  z-index: 60; 
+  display: grid; 
+  place-items: center;
+  background: rgba(0,0,0,0.45); /* leichter Dim hinter dem Panel */
+  pointer-events: none;         /* kein Klick durchs Panel blockieren */
+}
+
+#overlay[hidden] {
+  display: none; 
+}
+
+#overlay .panel {
+  pointer-events: auto;         /* Panel selbst darf interagieren (z.B. Text markieren) */
+  min-width: 320px; 
+  max-width: 480px;
+  background: rgba(11,14,20,0.92);
+  border: 1px solid #2b3245; 
+  border-radius: 12px;
+  padding: 16px 18px; color: #eaeef7;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+#overlay .title { 
+    font-size: 20px; 
+    margin-bottom: 8px; 
+}
+
+#overlay ol { 
+    margin: 8px 0 12px; 
+    padding-left: 1.4rem; 
+}
+
+#overlay li { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 2px 0; 
+}
+
+#overlay .hint { 
+    font-size: 12px; 
+    opacity: 0.85; 
+}
+
+#levelBanner[hidden]{ 
+    display:none; 
+}
+
+#levelBanner{
+  position:fixed; 
+  inset:0; 
+  display:grid; 
+  place-items:center;
+  pointer-events:none;
+}
+
+#levelBanner .bubble{
+  padding:10px 14px; 
+  border-radius:12px;
+  background:rgba(11,14,20,.92); 
+  color:#eaeef7;
+  border:1px solid #2b3245; 
+  font:600 18px system-ui;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+
+#levelBanner.show .bubble{ 
+    animation:levelPop 1.2s ease; 
+}
+
+#levelBanner .bubble #levelText { 
+    font-weight:600; 
+    font-size:18px; 
+}
+
+#levelBanner .bubble #levelSub  { 
+    font-size:13px; 
+    opacity:.85; 
+}
+
+@keyframes levelPop{
+  0%{opacity:0; transform:scale(.95)}
+  12%{opacity:1; transform:scale(1)}
+  80%{opacity:1}
+  100%{opacity:0; transform:scale(1.02)}
+}
+
+#titleScreen{
+  position: fixed; inset: 0; z-index: 30;
+  display: grid; place-items: center;
+  background-color: #0b1020;
+  background-image: url('img/titel.png');
+  background-repeat: no-repeat;
+  background-size: cover;         /* GANZES Bild sichtbar */
+  background-position: top;      /* nach oben ausrichten */
+  overflow: hidden;
+}
+
+@media (min-aspect-ratio: 21/9){
+  #titleScreen{ background-position: 50% 6%; }
+}
+@media (max-aspect-ratio: 16/9){
+  #titleScreen{ background-position: 50% 0%; }
+}
+
+
+#titleScreen[hidden] { 
+  display: none; 
+}
+
+.title-wrap {
+  display: flex;
+  flex-direction: column;   
+  align-items: center;
+  gap: 24px;                /* Abstand zwischen Überschrift und Panel */
+  text-align: center;
+}
+
+
+.title-panel {
+  position: absolute;      
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: min(3vh, 24px);  /* schöner, responsiver Abstand */
+  background: rgba(0,0,0,.55);
+  border: 1px solid #4b5563;
+  padding: 16px 20px;
+  border-radius: 12px;
+  min-width: 300px;
+  color: #eaeef7;
+  display: inline-block;
+  max-width: min(520px, 90vw); /* optional: Begrenzung */
+}
+
+
+.title-panel input[type="range"] { 
+  width: 100%; 
+}
+
+.title-panel button {
+  margin-top: 10px; 
+  padding: 10px 16px; 
+  border: 0; 
+  border-radius: 10px;
+  background: #a9c1ff; 
+  color: #0b1020; 
+  font-weight: 700; 
+  cursor: pointer;
+}
+
+.title-panel .muted { 
+    color: #a9b1c7; 
+    margin-top: 6px; 
+}
+
+#pauseOverlay[hidden]{ 
+  display:none; 
+}
+
+#pauseOverlay{
+  position:fixed; 
+  inset:0; 
+  z-index:50;   /* über Title (30), unter Highscore (60) */
+  display:grid; 
+  place-items:center;
+  pointer-events:none;
+}
+
+#pauseOverlay .bubble{
+  padding:12px 16px; 
+  border-radius:12px;
+  background:rgba(11,14,20,.92); 
+  color:#eaeef7;
+  border:1px solid #2b3245; 
+  font:600 18px system-ui;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+
+#pauseOverlay .big{ 
+  font-size:22px; 
+}
+
+#pauseOverlay .sub{ 
+  font-size:12px; 
+  opacity:.85; 
+}
+
+/* Overlay-Layer */
+#sw-opening{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:#000;
+  overflow:hidden
+}
+
+#sw-stars{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%
+}
+
+/* Prolog */
+#sw-prologue{
+  position:absolute;
+  top:45%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:#4bd5ee;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:clamp(16px,2.2vw,28px);
+  letter-spacing:.04em;
+  opacity:0;
+  white-space:nowrap;
+  animation:prologueIn .9s ease-out .2s forwards, prologueOut .8s ease-in var(--t-prologue-out) forwards;
+}
+
+/* STAR WARS Logo */
+#sw-logo{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(1.4);
+  font-family:Impact,"Arial Black",
+  sans-serif;font-weight:900;
+  line-height:.8;
+  text-align:center;
+  color:#ffe81f;
+  font-size:clamp(48px,12vw,220px);
+  letter-spacing:.02em;
+  text-shadow:0 0 12px #8a6;
+  opacity:0;
+  animation: logoIn 0.2s ease-out var(--t-logo-in) forwards,
+           logoFly var(--logo-fly-dur, 8s) cubic-bezier(.4,0,.2,1) var(--t-logo-fly) forwards;
+}
+
+/* Crawl */
+#sw-crawl-wrap{
+  position:absolute;
+  bottom: var(--crawl-bottom, -8vh);          
+  left:50%;
+  width:min(90vw,900px);
+  height: var(--crawl-height, 90vh);          
+  transform:
+    translateX(-50%)
+    perspective(var(--crawl-persp, 1100px))   
+    rotateX(var(--crawl-tilt, 20deg));        
+  transform-origin: 50% 100%;
+  perspective-origin: 50% 60%;                
+  opacity:0;
+  animation:crawlWrapIn .6s ease-out var(--t-crawl-in) forwards;
+}
+
+#sw-crawl{
+  position:absolute;
+  top: var(--crawl-top, 58vh);                
+  left:50%;
+  transform: translateX(-50%);
+  width:80%;
+  color:#ffe81f;
+  text-align:justify;
+  font:400 clamp(18px,2.4vw,26px)/1.6 Arial,Helvetica,sans-serif;
+  word-spacing:.1em;
+  --crawl-duration:70s;
+  --crawl-distance: -250vh;                   
+  animation: crawlMove var(--crawl-duration) linear var(--t-crawl-move) forwards;
+}
+
+#sw-crawl .sw-episode{
+  display:block;
+  text-align:center;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  font-weight:800;
+  font-family: Arial, Helvetica, sans-serif; 
+  font-size: clamp(20px, 2.6vw, 30px);
+  color:#ffe81f;
+  margin: 0 0 2em; /* Abstand vor dem Fließtext */
+}
+
+#sw-crawl p{
+  margin:0 0 1.2em
+}
+
+#sw-skip{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  padding:10px 14px;
+  background:rgba(0,0,0,.5);
+  border:1px solid #ffe81f;
+  color:#ffe81f;
+  border-radius:10px;
+  cursor:pointer;
+  font:600 14px system-ui,Arial;
+}
+#sw-skip:hover{
+  transform:scale(1.05)
+}
+
+@keyframes prologueIn{from{
+  opacity:0;
+  transform:translate(-50%,-55%)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes prologueOut{to{
+  opacity:0}}
+@keyframes logoIn{from{
+  opacity:0}to{opacity:1}}
+@keyframes logoFly{0%{
+  transform:translate(-50%,-50%) scale(1.4);
+  opacity:1}100%{transform:translate(-50%,-200vh) scale(.2);opacity:0}}
+@keyframes crawlWrapIn{from{
+  opacity:0}to{opacity:1}}
+@keyframes crawlMove{
+  0%   { transform: translate(-50%, 0) }
+  100% { transform: translate(-50%, var(--crawl-distance, -220vh)) }
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>space-arcade-fanbuild</title>
+
+  <!-- Sichtbarkeit drosseln: kein SEO -->
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="referrer" content="no-referrer" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Hinweis: Fan-Intro mit markenbezogenen Begriffen.
+       Diese Version ist bewusst als Fanprojekt gekennzeichnet (siehe Footer).
+       Keine Monetarisierung (keine Ads/Spenden/Affiliate). -->
+
+  <div id="sw-opening" hidden>
+    <canvas id="sw-stars"></canvas>
+    <div id="sw-prologue">Vor langer Zeit, in einer weit, weit entfernten Galaxis ...</div>
+    <div id="sw-logo">STAR<br>WARS</div>
+    <div id="sw-crawl-wrap">
+      <div id="sw-crawl">
+        <div id="sw-episode">EPISODE IV – REBELLION STORIES <p></p></div>
+
+        <p>Es herrscht eine Zeit der Bürgerkriege in der Galaxis. Eine mutige Allianz von Freiheitskämpfern im Untergrund hat die Tyrannei und Unterdrückung des
+        gewaltigen GALAKTISCHEN IMPERIUMS herausgefordert.</p>
+        <p>Aus einer Festung, verborgen zwischen den Milliarden Sternen der Galaxis, haben Rebellen-Raumschiffe ihren ersten Sieg in einer Schlacht gegen die
+        mächtige Imperiale Sternenflotte errungen. Das IMPERIUM befürchtet, dass eine weitere Niederlage tausend weitere Sonnensysteme in die Rebellion
+        ziehen und die imperiale Kontrolle über die Galaxis für immer verloren gehen könnte.</p>
+        <p>Um die Rebellion ein für alle Mal niederzuschlagen, errichtet das IMPERIUM eine finstere neue Kampfstation. Mächtig genug, um einen ganzen Planeten
+        zu zerstören, bedeutet ihre Fertigstellung den sicheren Untergang für die Verfechter der Freiheit.</p>
+        <p>Nur ein wagemutiger Angriff kann das Blatt wenden.</p>
+        <p>Im Verborgenen hat das Imperium ein geheimes Kriegsschiff entsandt, versteckt zwischen den gefährlichen Felsen der äußeren Ränder.
+        Von dort koordiniert es den Schutz des gefürchteten Todessterns.</p>
+        <p>Die Rebellen entsenden ihre tapfersten Piloten. Nur wenn das Angriffsschiff zerstört wird, kann die Allianz ihre größte Schlacht beginnen –
+        den Angriff auf den Todesstern.</p>
+      </div>
+    </div>
+    <button id="sw-skip" aria-label="Intro überspringen">Überspringen (Klick/ESC)</button>
+    <audio id="sw-audio" src="sounds/opening_theme.m4a" preload="auto"></audio>
+  </div>
+
+  <div id="wrap">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div id="overlay" hidden>
+    <div class="panel">
+      <div class="title" id="ovTitle">Highscores</div>
+      <ol id="ovList"></ol>
+      <div class="hint">Enter: Neustart • H: schließen</div>
+    </div>
+  </div>
+
+  <div id="levelBanner" hidden>
+    <div class="bubble">
+      <div id="levelText">Level 1</div>
+      <div id="levelSub"></div>
+    </div>
+  </div>
+
+  <div id="pauseOverlay" hidden>
+    <div class="bubble">
+      <div class="big">PAUSED</div>
+      <div class="sub">P: Fortsetzen • H: Highscores</div>
+    </div>
+  </div>
+
+  <div id="titleScreen" hidden>
+    <div class="title-wrap">
+      <div class="title-panel">
+        <label for="startLevel">Start-Level: <b id="startLevelVal">1</b></label>
+        <input type="range" id="startLevel" min="1" max="15" value="1">
+        <div id="startInfo" class="muted">Steine: 6 • Speed: +0%</div>
+        <button id="btnStart">Start</button>
+        <p class="hint">Dieses Spiel hat vollen Controller Support <br>
+          Enter: Start <br>
+          H : Highscores <br>
+          M / Select : Mute <br>
+          P / Start : Pause <br>
+          E / B : Seismic - Rocket <br>
+          L / X : Hyperspeed
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+
+  <!-- Klarer, gut sichtbarer Disclaimer -->
+  <footer style="opacity:.8;font:12px system-ui;margin:2rem auto 1rem;max-width:920px;line-height:1.4;text-align:center;padding:0 12px">
+    <strong>Disclaimer:</strong> Inoffizielles Fanprojekt. Nicht verbunden, gesponsert oder autorisiert von Lucasfilm oder Disney.
+    Alle Marken, Namen, Designs, Musik &amp; sonstige Assets gehören ihren jeweiligen Inhabern.
+    Keine Monetarisierung, rein zu Demonstrations- &amp; Lernzwecken. Bei Rechtehinweis entfernen wir Inhalte unverzüglich:
+    <a href="mailto:kontakt@example.com">kontakt@example.com</a>.
+  </footer>
+</body>
+</html>
