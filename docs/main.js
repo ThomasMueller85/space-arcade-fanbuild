@@ -28,6 +28,9 @@ import { isDeathstarActive, spawnDeathstar, updateDeathstar, drawDeathstar,
   resetDeathstar, getDeathstarShots, bulletHitsWeakSpot, damageDeathstar } from "./deathstar.js";
 import { spawnRocketFromShip, updateRockets, drawRockets, drawRocketEffects, resetRockets, updateRocketFX, drawRocketTrails  } from './rockets.js';
 import { playStarWarsOpening } from './opening.js';
+import { handleBulletAsteroidHits, handleShipAsteroidHit, handleShipUfoHit, handleShipUfoBulletHits, handleBulletUfoHits, handleBulletTieHits,
+  handleShipTieHit, handleShipTieBulletHits, handleShipDeathstarBulletHits } from './handle.js';
+
 
 // Holt das Canvas Element
 const canvas = document.getElementById('game');
@@ -307,224 +310,6 @@ function restart() {
 
 }
 
-function handleBulletAsteroidHits() {
-    const asts = getAsteroids();
-    const bullets = getBullets();
-
-    // die Asteroiden rückwärts durchgehen (damit es keine index probleme gibt mit splice)
-    outer: for (let i = asts.length - 1; i >= 0; i--) {
-        const a = asts[i];
-        for (let j = bullets.length - 1; j >= 0; j--) {
-            const b = bullets[j];
-            const r2 = (a.r + b.r) ** 2;
-        if (dist2(a, b) < r2) {
-            sfx.explosion();
-            //addShipHitShake();
-            removeBulletAt(j);
-            const dead = destroyAsteroidAt(i); // teilt ggf., gibt Original zurück
-            score += POINTS[dead.level] || 0;
-            destroyedCount += 1;
-            maybeDropFromAsteroid(dead);         
-            break outer;
-            }
-        }
-
-    }
-}
-
-function handleShipAsteroidHit() {
-    if (gameOver || ship.inv > 0) return; // geschützt oder GameOver nichts tun
-
-    for (const a of getAsteroids()) {
-        const r2 = (a.r + ship.radius) ** 2;
-        if (dist2(a, ship) < r2) {
-            // Treffer
-            lives -= 1;
-            addShipHitShake();
-            rumble(1.0, 500);
-            // Respawn * schutz
-            ship.x = CSS_W / 2;
-            ship.y = CSS_H / 2;
-            ship.vx = 0;
-            ship.vy = 0;
-            ship.angle = -Math.PI / 2;
-            ship.inv = INVINCIBLE_TIME;
-
-            if (lives < 0) {
-                gameOver = true;
-            }
-            break;
-        }
-    }
-}
-
-function handleShipUfoHit(){
-  if (gameOver || ship.inv > 0 || !isUfoActive()) return;
-  for (const u of getUfos()){
-    const r2 = (u.r + ship.radius) ** 2;
-    if (dist2(u, ship) < r2){
-      lives -= 1;
-      addShipHitShake();
-      rumble(1.0, 500);
-      ship.x = CSS_W/2; ship.y = CSS_H/2;
-      ship.vx = ship.vy = 0; ship.angle = -Math.PI/2;
-      ship.inv = INVINCIBLE_TIME;
-      if (lives < 0) gameOver = true;
-      return; // pro Frame max. 1 Treffer
-    }
-  }
-}
-
-
-function handleShipUfoBulletHits(){
-  if (gameOver || ship.inv > 0) return;
-  const shots = getUfoShots();
-  for (let i = shots.length - 1; i >= 0; i--){
-    const s = shots[i];
-    const r2 = (s.r + ship.radius) ** 2;
-    if (dist2(s, ship) < r2){
-      // Treffer -> gleicher Ablauf wie bei TIE-Schüssen
-      lives -= 1;
-      addShipHitShake();
-      rumble(1.0, 500);
-      ship.x = CSS_W / 2;
-      ship.y = CSS_H / 2;
-      ship.vx = ship.vy = 0;
-      ship.angle = -Math.PI / 2;
-      ship.inv = INVINCIBLE_TIME;
-
-      shots.splice(i, 1); 
-      if (lives < 0) gameOver = true;
-      break; // pro Frame max. 1 Treffer
-    }
-  }
-}
-
-function handleBulletUfoHits(){
-  if (!isUfoActive()) return;
-  const bs = getBullets();
-  const ufos = getUfos();
-
-  outer: for (let j = bs.length - 1; j >= 0; j--){
-    const b = bs[j];
-    for (const u of ufos){
-      const r2 = (u.r + b.r) ** 2;
-      if (dist2(u, b) < r2){
-        removeBulletAt(j);
-        const dead = damageUfo(u, 1);
-        if (dead){
-          sfx.explosion();
-          score += UFO_SCORE;
-          destroyedCount += 1;
-          maybeDropFromAsteroid({ x: dead.x, y: dead.y });
-          // Musik nicht sofort ändern – mehrere UFOs können noch leben
-          if (!isUfoActive()) bgm.toMain(600);
-        }
-        break outer; // pro Frame max. 1 Bullet-Kill
-      }
-    }
-  }
-}
-
-function handleBulletTieHits() {
-  const bs = getBullets();
-  const ts = getTies();
-  for (let i = ts.length - 1; i >= 0; i--) {
-    const t = ts[i];
-    for (let j = bs.length - 1; j >= 0; j--) {
-      const b = bs[j];
-      const r2 = (t.r + b.r) ** 2;
-      if (dist2(t, b) < r2) {
-        // Projektil ist immer weg
-        removeBulletAt(j);
-
-        // Während I-Frames kein Schaden
-        if (t.ifr > 0) {
-          continue; // nächstes Projektil prüfen
-        }
-
-        // Schaden
-        t.hp -= 1;
-
-        if (t.hp <= 0) {
-          const dead = destroyTieAt(i);
-          sfx.explosion();
-          //addShipHitShake();
-          score += TIE_SCORE;
-          destroyedCount += 1;
-          maybeDropFromAsteroid({ x: dead.x, y: dead.y });
-        } else {
-          // nur I-Frames setzen, NICHT zerstören
-          t.ifr = TIE_IFRAME;
-          // optional: sfx.hit?.();
-        }
-
-        // pro Frame max. 1 Treffer pro TIE
-        break;
-      }
-    }
-  }
-}
-
-
-function handleShipTieHit() {
-  if (gameOver || ship.inv > 0) return;
-  for (const t of getTies()) {
-    const r2 = (t.r + ship.radius) ** 2;
-    if (dist2(t, ship) < r2) {
-      lives -= 1;
-      addShipHitShake();
-      rumble(1.0, 500);
-      ship.x = CSS_W / 2; ship.y = CSS_H / 2;
-      ship.vx = ship.vy = 0; ship.angle = -Math.PI / 2;
-      ship.inv = INVINCIBLE_TIME;
-      if (lives < 0) gameOver = true;
-      break;
-    }
-  }
-}
-
-function handleShipTieBulletHits(){
-  if (gameOver || ship.inv > 0) return;
-  const shots = getTieShots();
-  for (let i = shots.length - 1; i >= 0; i--){
-    const s = shots[i];
-    const r2 = (s.r + ship.radius) ** 2;
-    if (dist2(s, ship) < r2){
-      // Treffer
-      lives -= 1;
-      addShipHitShake();
-      rumble(1.0, 500);
-      ship.x = CSS_W/2; ship.y = CSS_H/2;
-      ship.vx = ship.vy = 0; ship.angle = -Math.PI/2;
-      ship.inv = INVINCIBLE_TIME;
-      shots.splice(i, 1);
-      if (lives < 0) gameOver = true;
-      break; // pro Frame max 1 Treffer
-    }
-  }
-}
-
-function handleShipDeathstarBulletHits(){
-  if (gameOver || ship.inv > 0) return;
-  const ds = getDeathstarShots();
-  for (let i = ds.length - 1; i >= 0; i--){
-    const s = ds[i];
-    const r2 = (s.r + ship.radius) ** 2;
-    if (dist2(s, ship) < r2){
-      lives -= 1;
-      addShipHitShake();
-      rumble(1.0, 500);
-      ship.x = CSS_W/2; ship.y = CSS_H/2;
-      ship.vx = ship.vy = 0; ship.angle = -Math.PI/2;
-      ship.inv = INVINCIBLE_TIME;
-      ds.splice(i, 1);
-      if (lives < 0) gameOver = true;
-      break;
-    }
-  }
-}
-
 function tryFireRocket(ship) {
   if (ship.rocketAmmo > 0 && ship.rocketCD === 0) {
     spawnRocketFromShip(ship);
@@ -576,8 +361,15 @@ function render(now){
       // Rocket 
       if (pad && pad.rocket) {
       tryFireRocket(ship); // COOLDOWN + AMMO regeln das Spam-Problem
-}
+      }
     }
+
+    const hState = {
+    lives, score, destroyedCount, gameOver,
+    CSS_W, CSS_H, ship
+  };
+
+  
 
     // erst mal alles löschen 
     clearAll(ctx, canvas);
@@ -684,7 +476,9 @@ function render(now){
     // Ufo erstellen
     updateUfo(dts, CSS_W, CSS_H, ship);
     updateUfoShots(dts, CSS_W, CSS_H);
-    handleShipUfoBulletHits();
+    handleShipUfoBulletHits(hState, {
+      INVINCIBLE_TIME, dist2, getUfoShots, addShipHitShake, rumble
+    });
 
     updateTies(dts, CSS_W, CSS_H, ship);
 
@@ -752,12 +546,18 @@ if (isUfoActive()) {
     updateRocketFX(dt);
 
     // Treffer berechnen 
-    handleBulletAsteroidHits();
+    handleBulletAsteroidHits(hState, {
+      sfx, POINTS, dist2, getAsteroids, getBullets, removeBulletAt, destroyAsteroidAt, maybeDropFromAsteroid
+    });
 
     // Ufo treffer berechnen
-    handleBulletUfoHits();
+    handleBulletUfoHits(hState, {
+      sfx, bgm, UFO_SCORE, dist2, getBullets, getUfos, removeBulletAt, damageUfo, isUfoActive, maybeDropFromAsteroid
+    });
 
-    handleShipDeathstarBulletHits();
+    handleShipDeathstarBulletHits(hState, {
+      INVINCIBLE_TIME, dist2, getDeathstarShots, addShipHitShake, rumble
+    });
 
     // Wenn GameOver Highscores speichern
    if (gameOver && !playedGameOverSfx) {
@@ -773,18 +573,28 @@ if (isUfoActive()) {
     }
 
     // Spieler Leben
-    handleShipAsteroidHit();
+    handleShipAsteroidHit(hState, {
+      INVINCIBLE_TIME, dist2, getAsteroids, addShipHitShake, rumble
+    });
 
-    handleShipTieBulletHits();
+    handleShipTieBulletHits(hState, {
+      INVINCIBLE_TIME, dist2, getTieShots, addShipHitShake, rumble
+    });
 
-    handleBulletTieHits();
+    handleBulletTieHits(hState, {
+      sfx, TIE_SCORE, TIE_IFRAME, dist2, getBullets, getTies, removeBulletAt, destroyTieAt, maybeDropFromAsteroid
+    });
 
     // Ufo leben
-    handleShipUfoHit();
+    handleShipUfoHit(hState, {
+      INVINCIBLE_TIME, dist2, isUfoActive, getUfos, addShipHitShake, rumble
+    });
 
+    handleShipTieHit(hState, {
+      INVINCIBLE_TIME, dist2, getTies, addShipHitShake, rumble
+    });
 
-
-    handleShipTieHit();
+    ({ lives, score, destroyedCount, gameOver } = hState);
 
     updatePowerups(dt, CSS_W, CSS_H);
 
@@ -801,8 +611,6 @@ if (isUfoActive()) {
           ship.rocketAmmo += ROCKET_PICKUP_AMMO;
         }
     }
-
-
 
     // Spiel Level
     const enemiesCleared = (!isUfoActive() &&
