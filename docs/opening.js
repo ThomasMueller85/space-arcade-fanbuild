@@ -20,6 +20,8 @@ export function setOpeningTiming(opts = {}) {
 
 export function playStarWarsOpening({ onDone } = {}) {
     window.__openingActive = true;
+    let duration = 10000;     // ms
+    let opts = {};
     const root = document.getElementById('sw-opening');
     const starsC = document.getElementById('sw-stars');
     const audio = document.getElementById('sw-audio');
@@ -102,7 +104,7 @@ export function playStarWarsOpening({ onDone } = {}) {
 
 
     function onSkip() {
-        fadeOutAudio(500);
+        fadeOutAudio(audio, 500);
         finish();
     }
 
@@ -159,14 +161,14 @@ export function playStarWarsOpening({ onDone } = {}) {
   audio.addEventListener('ended', onEnd);
 }
 
-        // Autoplay mit unlockAudio
-            unlockAudio().finally(() => {
-            if (isFinite(audio.duration) && audio.duration > 0) {
-                startWithDuration(audio.duration);
-            } else {
-                audio.addEventListener('loadedmetadata', () => startWithDuration(audio.duration), { once:true});
-                // Fallback
-                setTimeout(()=> startWithDuration(FALLBACK_AUDIO), 1200);
-            }
-        });
+  // Autoplay mit unlockAudio
+  unlockAudio().finally(() => {
+  if (isFinite(audio.duration) && audio.duration > 0) {
+     startWithDuration(audio.duration);
+  } else {
+  audio.addEventListener('loadedmetadata', () => startWithDuration(audio.duration), { once:true});
+  // Fallback
+  setTimeout(()=> startWithDuration(FALLBACK_AUDIO), 1200);
+  }
+ });
 }

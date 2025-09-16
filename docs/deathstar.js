@@ -30,6 +30,23 @@ export function resetDeathstar() {
     shots.length = 0;          // alle aktiven Schüsse löschen
 }
 
+function applyEnrageIfNeeded() {
+  if (!boss) return;
+  const ratio = boss.hp / HP_MAX;
+  let wanted = 0;
+  if (ratio <= 0.25) wanted = 2;
+  else if (ratio <= 0.50) wanted = 1;
+
+  if (wanted > boss.enrageStage) {
+    boss.enrageStage = wanted;
+    // +1 Kanone & +40 Shot-Speed pro Stufe
+    boss.cannons   = CANNONS    + wanted;           // 0→CANNONS, 1→+1, 2→+2
+    boss.shotSpeed = SHOT_SPEED + (wanted * 40);    // 0→160, 1→200, 2→240
+    console.log('[Deathstar] Enrage → Stage', wanted, boss.cannons, boss.shotSpeed);
+  }
+}
+
+
 function warpToNewSide(W, H) {
   const side = randomSide();   // neue Bildschirmkante wählen
   const r = boss.r;            // Radius des Deathstars (halber Durchmesser)
@@ -90,10 +107,17 @@ export function spawnDeathstar(level, W, H) {
         // Optik
         rot: 0,                     // aktuelle Drehung
         rotSpeed: 0.08,             // Drehgeschwindigkeit
-        seed: (Math.random()*1e9)|0 // Zufalls-Seed für Effekte/Noise
+        seed: (Math.random()*1e9)|0, // Zufalls-Seed für Effekte/Noise
+
+        // Enrage-Stufen
+        enrageStage: 0,         // 0 = normal, 1 = 50%, 2 = 25%
+        cannons: CANNONS,       // dynamische Anzahl der Kanonen
+        shotSpeed: SHOT_SPEED,  // dynamische Projektil-Geschwindigkeit
+
     };
 }
 shots.length = 0;                   // sicherheitshalber Schussliste leeren 
+applyEnrageIfNeeded()               // direkt passende Enrage Stufe wählen
 
 export function damageDeathstar(amount){
   if (!boss) return false;          // kein Boss aktiv? dann nix zu tun
@@ -112,6 +136,8 @@ export function damageDeathstar(amount){
 
 export function updateDeathstar(dt, W, H, ship){
   if (!boss) return;                // ohne Boss nichts updaten
+
+  applyEnrageIfNeeded();            // prüfen ob eine Enrage Stufe erreicht wurde
   
   // Schüsse updaten (LEBENSDAUER & POSITION)
   for (let i = shots.length - 1; i >= 0; i--) {   // rückwärts, damit splice sicher ist
@@ -177,24 +203,34 @@ export function updateDeathstar(dt, W, H, ship){
       const angToMid = Math.atan2((H/2 - boss.y), (W/2 - boss.x));
       const spread = Math.PI * 0.65;              // Bogenbreite für Mehrfach-Kanonen
 
-      for (let i = 0; i < CANNONS; i++) {
-        // Winkel pro Kanone gleichmäßig über den Bogen verteilen
-        const a  = angToMid - spread/2 + (spread * (i / (CANNONS - 1)));
+      const n = Math.max(1, boss.cannons);
+      for (let i = 0; i < n; i++) {
+        // Gleichmäßige Verteilung im Bogen; bei n==1: exakt Mitte
+        const frac = (n === 1) ? 0.5 : (i / (n - 1));
+        const a    = angToMid - spread/2 + (spread * frac);
+
         // Mündungspunkt auf dem Rand der Kugel (leicht innen)
         const sx = boss.x + Math.cos(a) * (boss.r - 8);
         const sy = boss.y + Math.sin(a) * (boss.r - 8);
 
         // tatsächliches Ziel auf das Schiff ausrichten + leichte Streuung
-        const aim = Math.atan2(ship.y - sy, ship.x - sx) + (Math.random()*0.18 - 0.09);
+        const aim   = Math.atan2(ship.y - sy, ship.x - sx) + (Math.random()*0.18 - 0.09);
+        const speed = boss.shotSpeed;
+
+        const vx = Math.cos(aim) * speed;
+        const vy = Math.sin(aim) * speed;
+
+        // Länge abhängig von tatsächlichem Speed 
+        const len = Math.max(36, Math.min(110, speed * 0.14));
 
         shots.push({
         x: sx, y: sy,
-        vx: Math.cos(aim) * SHOT_SPEED,
-        vy: Math.sin(aim) * SHOT_SPEED,
+        vx,
+        vy,
         r: SHOT_R,
         life: BOSS_LASER__BASE_LIFE,           // verbleibend
         life0: BOSS_LASER__BASE_LIFE,          // konstant zum Normieren
-        len: Math.max(36, Math.min(110, SHOT_SPEED * 0.14)), // Länge
+        len,                                                 // Länge
         w: SHOT_R * 1.15                                     // Breite
         });
       }
