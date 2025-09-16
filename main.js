@@ -19,7 +19,7 @@ import {isUfoActive, spawnUfo, updateUfo, drawUfo,
 import {resetTies, getTies, spawnTies, updateTies, drawTies, destroyTieAt,
   getTieShots, updateTieShots, drawTieShots, resetTieShots } from './tie.js';
 import {addShipHitShake, updateFx, beginWorld, endWorld } from './fx.js';
-import { loadHighscoresFromFile, saveHighscoresToFile } from './hiscore_io.js';
+import {ensureHighscoreDir, loadHighscoresFromFile, saveHighscoresToFile } from './hiscore_io.js';
 import { startHyper, updateHyper, isHyperActive, drawHyperOverlay, cooldownLeft } from './hyper.js';
 import { resizeStarfield, updateStarfield, drawStarfield } from './starfield.js';
 import { resetUfoShots, updateUfoShots, drawUfoShots, getUfoShots } from './ufoShots.js';
@@ -84,51 +84,48 @@ function setPaused(on){
   }
 }
 
-let hiscores = []; 
- async function ladeHighscores() { 
- try { hiscores = await loadHighscoresFromFile(); 
- // direkt vom Server holen 
- hiscores.sort((a,b) => b.score - a.score); 
- } catch (e) { 
- console.warn('Highscores laden fehlgeschlagen:', e);
- hiscores = []; } setHighscores(hiscores, "astoroids", HISC_MAX); // Overlay-Puffer aktualisieren 
- } 
- async function speichereHighscores(game = 'astoroids') {
+let hiscores = [];
+
+// --- Datei-I/O Wrapper (zentral) ---
+async function ladeHighscores() {
   try {
-    await saveHighscoresToFile(hiscores, game, HISC_MAX);
+    await ensureHighscoreDir();                 // Asteroids-Ordner wählen/prüfen
+    hiscores = await loadHighscoresFromFile();  // highscores.txt lesen
+    hiscores.sort((a,b) => b.score - a.score);
+  } catch (e) {
+    console.warn('Highscores laden fehlgeschlagen:', e);
+    hiscores = [];
+  }
+  setHighscores(hiscores, HISC_MAX);            // Overlay-Puffer aktualisieren
+}
+
+async function speichereHighscores() {
+  try {
+    await saveHighscoresToFile(hiscores, HISC_MAX); // highscores.txt schreiben
   } catch (e) {
     console.warn('Highscores speichern fehlgeschlagen:', e);
   }
-  setHighscores(hiscores, game, HISC_MAX);  // ✅ game hier ergänzt
+  setHighscores(hiscores, HISC_MAX);               // Overlay-Puffer aktualisieren
 }
 
+// besten Score (Platz 1) zurückgeben sonst 0
+function bestScore() { 
+    return hiscores.length ? hiscores[0].score : 0; 
+}
 
-
- // --- Besten Score zurückgeben --- 
- function bestScore() { 
- return hiscores.length ? hiscores[0].score : 0; } // --- Einen neuen Highscore einmalig speichern --- 
- let scoreSaved = false; 
- async function recordHighScoreOnce(score) {
+// Flag: verhindert, dass der Score mehrfach gespeichert wird
+let scoreSaved = false;
+async function recordHighScoreOnce() {
   if (scoreSaved) return;
+
   const name = prompt('Name für Highscore?', 'PLAYER') || 'PLAYER';
 
-  console.log('➡ Neuer Score lokal hinzufügen:', { name, score, ts: Date.now() });
-  console.log('➡ hiscores vorher:', hiscores.slice());
-
   hiscores.push({ name, score, ts: Date.now() });
-  hiscores.sort((a, b) => b.score - a.score);
+  hiscores.sort((a,b) => b.score - a.score);
 
-  console.log('➡ hiscores nach sort:', hiscores.slice(0, 10));
-
-  // explizit das Spiel übergeben (z.B. 'astoroids')
-  await speichereHighscores('astoroids');
-
+  await speichereHighscores();   // schreibt TXT + aktualisiert Overlay-Puffer
   scoreSaved = true;
 }
-
-
-// --- Export für andere Module ---
-export { ladeHighscores, speichereHighscores, bestScore, recordHighScoreOnce };
 
 // ----- Schiff ------  
 // Spieler Schiff erstellen
@@ -569,7 +566,7 @@ if (isUfoActive()) {
         sfx.gameover();               // Sound
         bgm.stop(800);                // Musik ausblenden
 
-        recordHighScoreOnce(score);        // Score speichern (idempotent via scoreSaved)
+        recordHighScoreOnce();        // Score speichern (idempotent via scoreSaved)
         setHighscores(hiscores, HISC_MAX);   // Overlay-Liste aktualisieren
 
     if (!isOverlayOpen()) openOverlay('Game Over', true); // Overlay zeigen
