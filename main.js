@@ -17,7 +17,7 @@ import {updatePowerups, drawPowerups, maybeDropFromAsteroid, handlePickupCollisi
 import {isUfoActive, spawnUfo, updateUfo, drawUfo,
   resetUfo, getUfo, damageUfo, expectedBossHP, getUfos } from './ufo.js';
 import {resetTies, getTies, spawnTies, updateTies, drawTies, destroyTieAt,
-  getTieShots, updateTieShots, drawTieShots, resetTieShots } from './tie.js';
+  getTieShots, updateTieShots, drawTieShots, resetTieShots, updateTieExplos, drawTieExplos } from './tie.js';
 import {addShipHitShake, updateFx, beginWorld, endWorld } from './fx.js';
 import {ensureHighscoreDir, loadHighscoresFromFile, saveHighscoresToFile } from './hiscore_io.js';
 import { startHyper, updateHyper, isHyperActive, drawHyperOverlay, cooldownLeft } from './hyper.js';
@@ -483,6 +483,7 @@ function render(now){
     updateTies(dts, CSS_W, CSS_H, ship);
 
     updateTieShots(dts, CSS_W, CSS_H);
+    updateTieExplos(dt);
 
     const targets = [];
 
@@ -660,6 +661,8 @@ if (isUfoActive()) {
 
     // Asteroiden zeichnen
     drawAsteroids(ctx);
+
+    drawTieExplos(ctx); 
 
     drawTies(ctx);
 
