@@ -253,7 +253,7 @@ window.addEventListener('keydown', (e) => {
   
   if (key === 'm' || key === 'M') toggleMute();
   if (key === 'Enter' && gameOver) restart();
-  if (key === 'e' || key === 'E') tryFireRocket();
+  if (key === 'e' || key === 'E') tryFireRocket(ship);
   if (key === 'p' || key === 'P') setPaused(!paused); 
   if (key.toLowerCase() === HYPER_KEY && !paused) {
     startHyper(ship);
