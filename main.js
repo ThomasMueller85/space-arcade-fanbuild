@@ -253,7 +253,8 @@ window.addEventListener('keydown', (e) => {
   
   if (key === 'm' || key === 'M') toggleMute();
   if (key === 'Enter' && gameOver) restart();
-  if ((key === 'b' || key === 'B') && !paused && !isMenuOpen()) {tryFireRocket(ship); }
+  if ((key === 'e' || key === 'E') && !paused && !isMenuOpen()) {
+  if (ship.rocketAmmo != undefined) { tryFireRocket(ship); }}
   if (key === 'p' || key === 'P') setPaused(!paused); 
   if (key.toLowerCase() === HYPER_KEY && !paused) {
     startHyper(ship);
