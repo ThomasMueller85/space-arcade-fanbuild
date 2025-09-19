@@ -311,6 +311,10 @@ function restart() {
 }
 
 function tryFireRocket(s = ship) {
+  if (!s) return false;               
+  s.rocketAmmo ??= 0;
+  s.rocketCD   ??= 0;
+
   if (s.rocketAmmo > 0 && s.rocketCD === 0) {
     spawnRocketFromShip(s);
     s.rocketAmmo -= 1;
@@ -321,7 +325,6 @@ function tryFireRocket(s = ship) {
   }
   return false;
 }
-
 // --------- Spielschleife oder Render-Schleife ---------
 
 // Letzter Zeitstempel 
