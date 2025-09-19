@@ -253,7 +253,7 @@ window.addEventListener('keydown', (e) => {
   
   if (key === 'm' || key === 'M') toggleMute();
   if (key === 'Enter' && gameOver) restart();
-  if (key === 'e' || key === 'E') tryFireRocket(ship);
+  if ((key === 'e' || key === 'E') && !paused && !isMenuOpen()) {tryFireRocket(ship); }
   if (key === 'p' || key === 'P') setPaused(!paused); 
   if (key.toLowerCase() === HYPER_KEY && !paused) {
     startHyper(ship);
@@ -310,11 +310,11 @@ function restart() {
 
 }
 
-function tryFireRocket(ship) {
-  if (ship.rocketAmmo > 0 && ship.rocketCD === 0) {
-    spawnRocketFromShip(ship);
-    ship.rocketAmmo -= 1;
-    ship.rocketCD = ROCKET_COOLDOWN;
+function tryFireRocket(s = ship) {
+  if (s.rocketAmmo > 0 && s.rocketCD === 0) {
+    spawnRocketFromShip(s);
+    s.rocketAmmo -= 1;
+    s.rocketCD = ROCKET_COOLDOWN;
     sfx.shoot?.();
     rumble(0.4, 160);
     return true;
